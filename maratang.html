@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>마라탕 만들기</title>
+<style>
+:root{--bg:#fff1ec;--card:#fffaf8;--red:#d62828;--ink:#3b1a1a;--soft:#ffd9d0;--ok:#1f8a3b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#2a1010;--card:#3d1a1a;--ink:#ffe9e4;--soft:#5a2424;--ok:#5fd37e}}
+:root[data-theme="dark"]{--bg:#2a1010;--card:#3d1a1a;--ink:#ffe9e4;--soft:#5a2424;--ok:#5fd37e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+#app{max-width:520px;margin:0 auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+.card{background:var(--card);border:2px solid var(--red);border-radius:16px;padding:8px}
+h3{margin:0 0 6px;font-size:14px;color:var(--red)}
+.hud{display:flex;gap:8px;align-items:center;background:var(--red);color:#fff;border-radius:16px;padding:8px;font-size:13px}
+.hud>div{flex:1}
+button{font:inherit;cursor:pointer;border:2px solid var(--red);background:var(--card);color:var(--ink);border-radius:12px;padding:6px 8px}
+button:active{transform:scale(.95)}
+button:disabled{opacity:.45}
+.go{background:#ffb703;color:#3b1a1a;border-color:#fff}
+#clk{font-size:14px}#clk .bar{margin-top:6px}
+#kmsg{font-size:13px;margin-bottom:6px}
+.kitchen.a1 #ings{opacity:.4;pointer-events:none}
+.kitchen.a2 #ings,.kitchen.a2 .row,.kitchen.a2 #sauces,.kitchen.a2 #bell,.kitchen.a2 .hint{display:none}
+button:focus-visible{outline:3px solid #ffb703}
+.bar{height:8px;border-radius:5px;background:rgba(0,0,0,.25);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:#ffd166}
+#hall{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.seat{height:56px;border:1px dashed var(--red);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:21px;position:relative;cursor:pointer}
+.seat.sel{outline:3px solid #ffb703;background:var(--soft)}
+.seat small{position:absolute;top:1px;left:4px;font-size:9px}
+.seat .b{position:absolute;left:4px;right:4px;bottom:3px;height:4px;border-radius:3px;background:rgba(0,0,0,.18)}
+.seat .b i{display:block;height:100%;background:#2a9d4a}
+.seat.low .b i{background:#e63946}
+#decor{margin-top:6px;font-size:22px;min-height:8px}
+.ln{padding:2px 0;font-size:14px}.ln.ok{color:var(--ok);font-weight:700}.ln.bad{color:var(--red);font-weight:700}
+.kitchen{background:linear-gradient(var(--soft),var(--card))}
+#ings{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:6px}
+#sauces{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0}
+.ing{display:flex;flex-direction:column;align-items:center;padding:4px 1px;line-height:1.15}
+.ing span{font-size:21px}.ing small{font-size:10px}
+.ing.on{background:var(--red);color:#fff}
+.row{display:flex;gap:6px;align-items:center;margin:6px 0}.grow{flex:1}
+#basket{font-size:13px;min-height:34px}
+#bell{width:100%;background:var(--red);color:#fff;font-size:18px;padding:12px;font-weight:700}
+.hint{font-size:11px;opacity:.75;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#222;color:#fff;padding:8px 14px;border-radius:20px;font-size:13px;display:none;z-index:5;max-width:92%;text-align:center}
+#overlay{position:fixed;inset:0;background:rgba(50,0,0,.78);display:none;align-items:center;justify-content:center;padding:14px;z-index:9;overflow:auto}
+.box{background:var(--card);border:3px solid var(--red);border-radius:20px;padding:18px;max-width:440px;width:100%;text-align:center;max-height:100%;overflow:auto}
+.box h1,.box h2{margin:0 0 8px;color:var(--red)}.box p{margin:6px 0;font-size:14px;line-height:1.5}
+.big{background:var(--red);color:#fff;font-size:18px;padding:10px 24px;margin-top:10px;font-weight:700}
+.shop{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--red);border-radius:12px;padding:6px 8px;margin:6px 0;text-align:left;font-size:13px}
+</style></head><body>
+<div id="app">
+ <div class="hud"><div>💰 매출<br><b id="money">₩0</b></div><div>❤️ 인기도 <b id="pop">50</b><div class="bar"><i id="popbar"></i></div></div><div>🍜 서빙<br><b id="served">0</b></div><button id="shopBtn">🛒 가게</button></div>
+ <div class="card" id="clk"><div id="ctext"></div><div class="bar"><i id="cbar"></i></div></div>
+ <section class="card"><h3>🏮 홀 (15석) · 손님을 누르면 주문서가 보여요</h3><div id="hall"></div><div id="decor"></div></section>
+ <section class="card" id="ticket"></section>
+ <section class="card kitchen" id="kitchen"><div id="kmsg"></div>
+  <h3>👩‍🍳 주방</h3>
+  <div id="ings"></div>
+  <div class="row"><div id="basket" class="grow"></div><button id="clear">🗑️ 비우기</button></div>
+  <div class="row"><button id="blanch">♨️ 데치기</button><div class="bar grow"><i id="potbar"></i></div></div>
+  <div id="sauces"></div>
+  <button id="bell">🔔 종 울리기</button>
+  <div class="hint">재료는 누를 때마다 50g씩, 소스는 누를 때마다 1스푼씩, 모든 소스를 합쳐 최대 5스푼(가득 찼을 때 넣은 소스를 누르면 비워져요) · 키보드: D 데치기, 1~4 소스, Enter 종, Backspace 비우기, ←/→ 손님 선택</div>
+ </section>
+</div>
+<div id="toast"></div><div id="overlay"></div>
+<script>
+const ING=[["숙주","🌱"],["청경채","🥬"],["푸주","🍢"],["목이버섯","🍄"],["백목이버섯","☁️"],["두부","🟨"],["팽이버섯","🥢"],["고구마떡","🍠"],["수제비","🥟"],["감자","🥔"],["넙적당면","🍜"],["옥수수면","🌽"],["분모자","⚪"],["유부","🍘"]];
+const SAU=[["땅콩소스","🥜"],["마유","🧴"],["고추기름","🌶️"],["마라소스","🔴"]];
+const EM=Object.fromEntries([...ING,...SAU]);
+const FACES=["😀","🙂","😎","🤓","🥳","😺","🧑","👩","👨","👵"];
+const FURN=[["화분","🪴",12000,.06],["홍등","🏮",18000,.08],["액자","🖼️",20000,.08],["어항","🐠",25000,.12],["TV","📺",30000,.15],["소파","🛋️",35000,.15]];
+const decoBonus=()=>FURN.filter(f=>S.decor.includes(f[1])).reduce((a,f)=>a+f[3],0);
+const $=s=>document.querySelector(s),rnd=a=>a[Math.floor(Math.random()*a.length)],won=n=>"₩"+n.toLocaleString("ko-KR");
+let S;
+const isBrk=m=>(m>=780&&m<840)||(m>=1140&&m<1200);
+const hm=m=>String(Math.floor(m/60)).padStart(2,"0")+":"+String(Math.floor(m%60)).padStart(2,"0");
+function init(){S={money:30000,pop:30,served:0,billServed:0,day:1,albas:0,jobs:[],fillFor:null,fillT:0,spawn:1.5,clock:600,wasBrk:false,cust:[],sel:null,nid:1,basket:{},blanched:false,blanch:0,sauce:{},decor:[],over:false,paused:true}}
+// 화면 뼈대 (한 번만 만들고 값만 갱신)
+const seats=[];
+for(let i=0;i<15;i++){const d=document.createElement("div");d.className="seat";d.innerHTML="<small></small><span></span><div class='b'><i></i></div>";d.onclick=()=>{const c=S.cust.find(c=>c.seat===i&&c.st==="wait");if(c){S.sel=c.id;render()}};$("#hall").append(d);seats.push(d)}
+ING.forEach(([n,e])=>{const b=document.createElement("button");b.className="ing";b.innerHTML=`<span>${e}</span><small>${n}</small>`;b.onclick=()=>add(n);$("#ings").append(b)});
+const sbtn=SAU.map(([n,e],i)=>{const b=document.createElement("button");b.className="ing";b.innerHTML=`<span>${e}</span><small>${n}</small>`;b.onclick=()=>pickSauce(n);$("#sauces").append(b);return b});
+$("#clear").onclick=clearPrep;$("#blanch").onclick=blanch;$("#bell").onclick=serve;$("#shopBtn").onclick=openShop;
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(tt);tt=setTimeout(()=>t.style.display="none",1800)}
+function showOv(h){const o=$("#overlay");o.innerHTML=`<div class="box">${h}</div>`;o.style.display="flex"}
+function hideOv(){$("#overlay").style.display="none"}
+// 주문
+function mkOrder(){const n=Math.min(4,2+Math.floor(S.served/8));const names=[...ING].sort(()=>Math.random()-.5).slice(0,n);const items={};names.forEach(x=>items[x[0]]=rnd([50,100,100,150]));const kinds=[...SAU].sort(()=>Math.random()-.5).slice(0,rnd([2,2,3])),sauce={};kinds.forEach(x=>sauce[x[0]]=1);let left=rnd([3,4,5])-kinds.length;while(left-->0)sauce[rnd(kinds)[0]]++;return{items,sauce}}
+const price=o=>Object.values(o.items).reduce((a,b)=>a+b,0)*40+Object.values(o.sauce).reduce((a,b)=>a+b,0)*500;
+const sp=s=>Object.keys(s||{}).length?Object.entries(s).map(([k,v])=>`${k} ${v}`).join(", "):"없음";
+const ostr=(items,sauce)=>Object.entries(items).map(([k,v])=>`${k} ${v}g`).join(", ")+` / 소스(스푼) ${sp(sauce)}`;
+function addCust(){const used=new Set(S.cust.map(c=>c.seat));const free=[...Array(15).keys()].filter(i=>!used.has(i));if(!free.length)return;const o=mkOrder();const pm=Math.max(30,60-S.served*.7)+Object.keys(o.items).length*4;S.cust.push({id:S.nid++,seat:rnd(free),face:rnd(FACES),order:o,p:pm,pm,st:"wait",t:0})}
+function reselect(){if(!S.cust.some(c=>c.id===S.sel&&c.st==="wait")){const c=S.cust.find(c=>c.st==="wait");S.sel=c?c.id:null}}
+// 조리
+function add(n){if(S.over||S.paused||S.albas>=1)return;if(S.blanched||S.blanch>0)return toast("이미 데쳤어요. 비우기를 눌러 다시 담아 주세요");S.basket[n]=Math.min(300,(S.basket[n]||0)+50);render()}
+function pickSauce(n){if(S.over||S.paused||S.albas>=2)return;const tot=Object.values(S.sauce).reduce((a,b)=>a+b,0);if(tot>=5){if(S.sauce[n]){delete S.sauce[n];toast(n+"를 비웠어요")}else toast("소스는 모두 합쳐서 최대 5스푼이에요")}else S.sauce[n]=(S.sauce[n]||0)+1;render()}
+function clearPrep(){if(S.over||S.paused||S.albas>=2)return;S.basket={};S.blanched=false;S.blanch=0;S.sauce={};render()}
+function blanch(){if(S.over||S.paused||S.albas>=2)return;if(S.albas===1){const c=S.cust.find(c=>c.id===S.sel&&c.st==="wait");if(c&&!(Object.keys(S.basket).length===Object.keys(c.order.items).length&&Object.entries(c.order.items).every(([k,v])=>S.basket[k]===v)))return toast("알바생이 재료를 담는 중이에요")}if(!Object.keys(S.basket).length)return toast("먼저 재료를 담아 주세요");if(S.blanched||S.blanch>0)return;S.blanch=1.5;render()}
+function success(c){const p=price(c.order),g=c.p/c.pm>=.5?.8:.4;S.money+=p;S.pop=Math.min(100,S.pop+g);S.served++;c.st="done";c.t=1.2;c.face="😋";toast(`😋 맛있어요! +${won(p)} · 인기도 +${g}`);if(S.pop>=100)ending()}
+function serve(){if(S.over||S.paused||S.albas>=2)return;const c=S.cust.find(c=>c.id===S.sel&&c.st==="wait");
+ if(!c)return toast("주문서를 볼 손님을 먼저 눌러 주세요");
+ if(!Object.keys(S.basket).length)return toast("재료를 먼저 담아 주세요");
+ if(!S.blanched)return toast("재료를 데쳐 주세요 (♨️)");
+ if(!Object.keys(S.sauce).length)return toast("소스를 넣어 주세요");
+ const o=c.order,ok=Object.keys(o.sauce).length===Object.keys(S.sauce).length&&Object.entries(o.sauce).every(([k,v])=>S.sauce[k]===v)&&Object.keys(o.items).length===Object.keys(S.basket).length&&Object.entries(o.items).every(([k,v])=>S.basket[k]===v);
+ if(!ok){c.face="😡";return gameover(c)}
+ success(c);S.basket={};S.blanched=false;S.sauce={};reselect();render()}
+function gameover(c){S.over=true;render();setTimeout(()=>showOv(`<h2>💸 파산했어요!</h2><p>${c.id}번 손님이 주문서와 다른 마라탕을 받고 나쁜 평가를 남겼어요.</p><p>📝 주문: ${ostr(c.order.items,c.order.sauce)}<br>🍲 서빙: ${ostr(S.basket,S.sauce)}</p><p>서빙 ${S.served}그릇 · 매출 ${won(S.money)} · 인기도 ${S.pop}</p><button class="big" id="again">다시 하기</button>`),700);}
+const bills=()=>{const rent=8000,elec=4000+2500*S.albas+1200*S.decor.length,water=400*(S.served-S.billServed);return{rent,elec,water,total:rent+elec+water}};
+const resetPrep=()=>{S.cust=[];S.sel=null;S.jobs=[];S.basket={};S.blanched=false;S.blanch=0;S.sauce={};S.fillFor=null};
+function albaWork(dt){
+ if(S.albas>=2){
+  while(S.jobs.length<2){const c=S.cust.find(c=>c.st==="wait"&&!S.jobs.some(j=>j.id===c.id));if(!c)break;const o=c.order;S.jobs.push({id:c.id,t:0,need:Object.values(o.items).reduce((a,b)=>a+b/50,0)*.6+1.5+Object.values(o.sauce).reduce((a,b)=>a+b,0)*.5+1})}
+  S.jobs=S.jobs.filter(j=>{const c=S.cust.find(c=>c.id===j.id&&c.st==="wait");if(!c)return false;j.t+=dt;if(j.t>=j.need){success(c);return false}return true})
+ }else if(S.albas===1){
+  const c=S.cust.find(c=>c.id===S.sel&&c.st==="wait");if(!c||S.blanched||S.blanch>0)return;
+  if(S.fillFor!==c.id){S.basket={};S.sauce={};S.fillFor=c.id}
+  S.fillT+=dt;if(S.fillT>=.5){S.fillT=0;const k=Object.keys(c.order.items).find(k=>(S.basket[k]||0)<c.order.items[k]);if(k)S.basket[k]=(S.basket[k]||0)+50}
+ }}
+function inspect(){resetPrep();S.paused=true;render();const b=bills(),ok=S.money>=b.total;
+ showOv(`<h2>🔧 가게 점검</h2><p>☕ 브레이크 타임이에요. 손님들이 모두 나갔어요.</p>
+ <div class="shop"><span>🏠 월세</span><b>${won(b.rent)}</b></div>
+ <div class="shop"><span>💡 전기세<br><small>알바생 ${S.albas}명 · 가구 ${S.decor.length}개</small></span><b>${won(b.elec)}</b></div>
+ <div class="shop"><span>🚰 수도세<br><small>서빙 ${S.served-S.billServed}그릇</small></span><b>${won(b.water)}</b></div>
+ <p>합계 <b>${won(b.total)}</b> / 보유 <b>${won(S.money)}</b></p>${ok?"":"<p><b>⚠️ 매출이 부족해요! 낼 수 없으면 파산해요.</b></p>"}
+ <button class="big" id="pay">납부하기</button>`)}
+function payBills(){const b=bills();
+ if(S.money<b.total){S.over=true;render();return showOv(`<h2>💸 파산했어요!</h2><p>운영비를 내지 못해 가게 문을 닫게 됐어요.</p><p>청구서 ${won(b.total)} / 보유 ${won(S.money)}</p><p>${S.day}일차 · 서빙 ${S.served}그릇 · 인기도 ${S.pop.toFixed(1)}</p><button class="big" id="again">다시 하기</button>`)}
+ S.money-=b.total;S.billServed=S.served;S.paused=false;hideOv();render();toast("🧾 납부 완료! 🛒 가게에서 알바생을 구하거나 홀을 꾸며 보세요")}
+function endDay(){S.paused=true;render();showOv(`<h2>🌙 ${S.day}일차 영업 종료!</h2><p>23시까지 가게를 운영했어요.</p><p>서빙 ${S.served}그릇 · 매출 ${won(S.money)} · 인기도 ${S.pop.toFixed(1)}/100</p><button class="big" id="nextday">다음 날 영업 시작</button>`)}
+function nextDay(){S.day++;S.clock=600;S.wasBrk=false;resetPrep();S.spawn=1.5;S.paused=false;hideOv();render()}
+function ending(){S.over=true;render();showOv(`<h2>🎉 분점 오픈!</h2><p>인기도 100! 마라탕 가게가 대박이 나서 분점까지 내게 됐어요.</p><p>${S.day}일차 · 서빙 ${S.served}그릇 · 매출 ${won(S.money)}</p><p>🍜🏮 사장님 축하해요! 🏮🍜</p><button class="big" id="again">다시 하기</button>`)}
+// 반복 처리
+function tick(){if(S.paused||S.over)return;const dt=.1;S.clock+=dt*2;if(S.clock>=1380){S.clock=1380;return endDay()}const brk=isBrk(S.clock);if(brk!==S.wasBrk){S.wasBrk=brk;if(brk)return inspect();toast("🔔 영업을 다시 시작해요! 손님이 와요")}
+ for(const c of S.cust){if(c.st==="wait"){c.p-=dt;if(c.p<=0){c.st="left";c.t=1;c.face="😢";S.pop=Math.max(0,S.pop-4);S.money=Math.max(0,S.money-3000);toast("😢 손님이 나갔어요! 인기도 -4 · 매출 -₩3,000")}}else c.t-=dt}
+ S.cust=S.cust.filter(c=>c.st==="wait"||c.t>0);reselect();
+ if(S.blanch>0){S.blanch-=dt;if(S.blanch<=0){S.blanch=0;S.blanched=true}}
+ albaWork(dt);
+ if(!brk&&S.clock<1350)S.spawn-=dt;if(S.spawn<=0&&!brk&&S.clock<1350){addCust();S.spawn=Math.max(2.5,Math.max(4,11-S.pop*.05-S.served*.03)/(1+decoBonus()))*(.8+Math.random()*.4)}
+ reselect();render()}
+function render(){
+ $("#money").textContent=won(S.money);$("#pop").textContent=S.pop.toFixed(1);$("#popbar").style.width=S.pop+"%";$("#served").textContent=S.served;
+ seats.forEach((el,i)=>{const c=S.cust.find(c=>c.seat===i);const r=c&&c.st==="wait"?Math.max(0,c.p/c.pm):0;el.children[0].textContent=c?c.id:"";el.children[1].textContent=c?(c.st==="wait"&&r<.3?"😟":c.face):"";el.children[2].firstChild.style.width=(r*100)+"%";el.children[2].style.visibility=c&&c.st==="wait"?"visible":"hidden";el.className="seat"+(c&&c.id===S.sel&&c.st==="wait"?" sel":"")+(c&&r<.3&&c.st==="wait"?" low":"")});
+ const brk=isBrk(S.clock);$("#ctext").innerHTML=`📅 ${S.day}일차 · 🕙 <b>${hm(S.clock)}</b> · ${brk?"☕ 브레이크 타임 — 🛒 가게를 열 수 있어요":S.clock>=1350?"🌙 마감 준비 중":"🟢 영업 중 (10:00~23:00)"}`;$("#cbar").style.width=((S.clock-600)/780*100)+"%";$("#shopBtn").disabled=false;$("#shopBtn").classList.toggle("go",brk);const kt=$("#kitchen");kt.classList.toggle("a1",S.albas===1);kt.classList.toggle("a2",S.albas>=2);$("#kmsg").textContent=S.albas>=2?"👩‍🍳👨‍🍳 알바생 두 명이 주방을 맡고 있어요! 사장님은 🛒 가게 성장에 집중하세요":S.albas===1?"👩‍🍳 알바생이 재료를 담아 줘요. 데치기·소스·종은 사장님 몫!":"";
+ $("#decor").textContent=S.decor.join(" ");
+ const c=S.cust.find(c=>c.id===S.sel&&c.st==="wait");
+ if(c){const ex=[...Object.keys(S.basket).filter(k=>!(k in c.order.items)),...Object.keys(S.sauce).filter(k=>!(k in c.order.sauce))];
+  $("#ticket").innerHTML=`<h3>📝 ${c.id}번 손님 주문서</h3>`+Object.entries(c.order.items).map(([k,v])=>{const cur=S.basket[k]||0;return `<div class="ln ${cur===v?"ok":""}">${EM[k]} ${k} ${v}g <small>(담은 양 ${cur}g)</small></div>`}).join("")+(()=>{const o=c.order.sauce,same=Object.keys(o).length===Object.keys(S.sauce).length&&Object.entries(o).every(([k,v])=>S.sauce[k]===v);return `<div class="ln ${same?"ok":""}">🥄 소스(스푼): ${sp(o)} <small>(넣은 양: ${sp(S.sauce)})</small></div>`})()+(ex.length?`<div class="ln bad">주문에 없는 재료·소스: ${ex.join(", ")}</div>`:"")}
+ else $("#ticket").innerHTML="<h3>📝 주문서</h3><div class='ln'>손님을 기다리는 중이에요...</div>";
+ const be=Object.entries(S.basket);$("#basket").innerHTML="🧺 "+(be.length?be.map(([k,v])=>`${k} ${v}g`).join(" · "):"비어 있어요")+(S.blanched?" <b>✅ 데침</b>":"")+(Object.keys(S.sauce).length?"<br>🥄 소스(스푼): "+sp(S.sauce)+" ("+Object.values(S.sauce).reduce((a,b)=>a+b,0)+"/5)":"");
+ $("#blanch").disabled=!be.length||S.blanched||S.blanch>0;$("#blanch").textContent=S.blanched?"✅ 데침 완료":S.blanch>0?"♨️ 데치는 중...":"♨️ 데치기";
+ $("#potbar").style.width=(S.blanched?100:S.blanch>0?(1-S.blanch/1.5)*100:0)+"%";
+ sbtn.forEach((b,i)=>{const n=SAU[i][0],v=S.sauce[n]||0;b.classList.toggle("on",v>0);b.querySelector("small").textContent=v?`${n} ${v}스푼`:n})}
+// 가게 (알바생·가구)
+function openShop(){if(S.over||S.paused)return;S.paused=true;shop()}
+function shop(){const n=S.albas,cost=[40000,80000][n],need=n===1&&S.pop<40,dec=isBrk(S.clock)||S.albas>=2;
+ showOv(`<h2>🛒 가게</h2><p>보유 매출: <b>${won(S.money)}</b><br><small>알바생은 언제든 고용할 수 있고, 가구는 브레이크 타임에 놓을 수 있어요. 가구를 놓으면 손님이 더 많이 와요! (현재 손님 유입 +${Math.round(decoBonus()*100)}%)<br>가게를 열어 둔 동안 시간은 멈춰요.</small></p>
+ <div class="shop"><span>💁 알바생 (${n}/2명)<br><small>${n===0?"재료를 대신 담아 줘요 (데치기·소스는 사장님)":n===1?"두 명째부터 주방 전체를 맡아요 (인기도 40 필요)":"알바생 두 명이 주방을 맡고 있어요"}</small></span><button data-a="alba" ${n>=2||need||S.money<cost?"disabled":""}>${n>=2?"최대":need?"인기도 40":won(cost)}</button></div>`+
+ FURN.map((f,i)=>`<div class="shop"><span>${f[1]} ${f[0]}<br><small>손님 유입 +${Math.round(f[3]*100)}% · 전기세 +₩1,200</small></span><button data-f="${i}" ${S.decor.includes(f[1])||!dec||S.money<f[2]?"disabled":""}>${S.decor.includes(f[1])?"구매함":!dec?"브레이크 타임에만":won(f[2])}</button></div>`).join("")+`<button class="big" id="closeShop">닫기</button>`)}
+$("#overlay").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.id==="start"||b.id==="again"){init();S.paused=false;hideOv();render()}
+ else if(b.id==="closeShop"){S.paused=false;hideOv()}else if(b.id==="pay")payBills();else if(b.id==="nextday")nextDay()
+ else if(b.dataset.a){const n=S.albas,cost=[40000,80000][n];if(n<2&&S.money>=cost&&!(n===1&&S.pop<40)){S.money-=cost;S.albas++;S.fillFor=null;render();shop()}}
+ else if(b.dataset.f){const f=FURN[+b.dataset.f];if(S.money>=f[2]&&!S.decor.includes(f[1])&&(isBrk(S.clock)||S.albas>=2)){S.money-=f[2];S.decor.push(f[1]);render();shop()}}});
+document.addEventListener("keydown",e=>{if(S.paused||S.over)return;const k=e.key;
+ if(k==="d"||k==="D")blanch();else if(k==="Enter"){e.preventDefault();serve()}else if(k==="Backspace"||k==="c"||k==="C")clearPrep();
+ else if("1234".includes(k)&&k)pickSauce(SAU[+k-1][0]);
+ else if(k==="ArrowLeft"||k==="ArrowRight"){const w=S.cust.filter(c=>c.st==="wait");if(!w.length)return;let i=w.findIndex(c=>c.id===S.sel);i=(i+(k==="ArrowRight"?1:-1)+w.length)%w.length;S.sel=w[i].id;render()}});
+init();render();
+showOv(`<h1>🍜 마라탕 만들기</h1><p>주방장이 되어 손님의 주문서대로 마라탕을 만들어 보세요!</p><p>① 재료를 무게에 맞게 담기<br>② ♨️ 재료 데치기<br>③ 🥜 소스를 섞어 넣기 (합쳐서 최대 5스푼)<br>④ 🔔 종을 울려 서빙하기</p><p>주문서와 다르게 서빙하면 <b>파산</b>해요.<br>너무 늦으면 손님이 나가서 인기도와 매출이 떨어져요.</p><p>🕙 영업시간은 10~23시예요.<br>☕ 13~14시, 19~20시는 브레이크 타임! 손님이 나가고 🔧 월세·전기세·수도세를 내요. 🛒 가게에서는 알바생을 언제든 고용할 수 있고, 가구는 브레이크 타임에 놓을 수 있어요. 가구가 많을수록 손님이 더 많이 와요 (전기세도 늘어요).</p><p>💁 알바생 1명: 재료를 대신 담아 줘요<br>💁💁 알바생 2명: 주방 전체를 맡아요 (인기도 40 필요)</p><p>🏆 인기도 100이 되면 분점을 내는 엔딩! 인기도는 천천히 올라요.</p><button class="big" id="start">게임 시작</button>`);
+setInterval(tick,100);
+</script></body></html>
